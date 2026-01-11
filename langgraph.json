@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "interview_agent": "interview_sim.app.graph:workflow"
+  },
+  "env": ".env"
+}

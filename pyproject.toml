@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "interview-sim"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",         # Required for File/Form uploads in FastAPI
+    "langgraph",
+    "langchain-openai",
+    "langchain-core",
+    "pydantic",
+    "python-dotenv",            # For loading .env variables
+    "streamlit",
+    "requests",
+    "audio-recorder-streamlit",  # Streamlit component for audio
+    "langgraph-checkpoint-sqlite"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",       # Handles both linting and formatting
+    "pre-commit"  # For git hooks
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["interview_sim*"]
+
+# --- RUFF CONFIGURATION ---
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "B"]
+ignore = []
+
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
