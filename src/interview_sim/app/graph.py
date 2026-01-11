@@ -1,7 +1,8 @@
 from langgraph.graph import StateGraph, START, END
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.sqlite import SqliteSaver #For a more advanced e.g. persistant version in the future
+from langgraph.checkpoint.memory import MemorySaver
 from .state import InterviewState
 
 llm = ChatOpenAI(model="gpt-5-nano")
@@ -9,6 +10,7 @@ llm = ChatOpenAI(model="gpt-5-nano")
 def generate_question_node(state: InterviewState):
     if state.question_count >= state.max_questions:
         return {"is_finished": True}
+        
     system_prompt = f"""
     You are an expert interviewer for {state.company_description}.
     Job Role: {state.job_description}
@@ -26,7 +28,13 @@ def generate_question_node(state: InterviewState):
     ])
     
     chain = prompt | llm
-    response = chain.invoke(state)
+    
+    try:
+        inputs = state.model_dump()
+    except AttributeError:
+        inputs = state.dict() # Fallback for Pydantic V1
+        
+    response = chain.invoke(inputs)
     
     return {
         "messages": [response], 
@@ -40,7 +48,6 @@ def grading_node(state: InterviewState):
     Task: Analyze the conversation...
     """
     
-    # FIX: Use dot notation
     messages = state.messages
     response = llm.invoke([("system", system_prompt)] + messages)
     
@@ -67,5 +74,5 @@ workflow.add_conditional_edges(
 )
 workflow.add_edge("grader", END)
 
-memory = SqliteSaver.from_conn_string("checkpoints.db")
-app_graph = workflow.compile(checkpointer=memory)
+checkpointer = MemorySaver()
+app_graph = workflow.compile(checkpointer=checkpointer)

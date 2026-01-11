@@ -4,12 +4,10 @@ load_dotenv()
 from fastapi import FastAPI, UploadFile, File, Form
 from .graph import app_graph
 from .utils.audio import transcribe_audio
-from .state import InterviewState  # <--- IMPORT THIS
+from .state import InterviewState 
 from langchain_core.messages import HumanMessage
 
 app = FastAPI()
-
-sessions = {}
 
 @app.post("/start_interview")
 async def start_interview(
@@ -30,15 +28,9 @@ async def start_interview(
         is_finished=False
     )
     
-    # Now input is strictly InterviewState
-    events = app_graph.invoke(initial_state)
-    
-    # Depending on LangGraph version/config, 'events' might be a dict or State object.
-    # If events is a dict (standard output), access via keys.
-    # If events is InterviewState object, use dot notation.
-    # Usually invoke returns a dict of the final state.
-    sessions[session_id] = events 
-    
+    config = {"configurable": {"thread_id": session_id}}
+    events = app_graph.invoke(initial_state, config=config)
+
     return {"response": events["messages"][-1].content} 
 
 @app.post("/submit_answer")
@@ -48,29 +40,16 @@ async def submit_answer(
 ):
     user_text = await transcribe_audio(audio)
     
-    # Retrieve dict from session
-    current_state_dict = sessions.get(session_id)
-    if not current_state_dict:
-        return {"error": "Session not found"}
+    update_data = {"messages": [HumanMessage(content=user_text)]}
     
-    # FIX: Re-hydrate into Pydantic model if needed, 
-    # OR rely on LangGraph to accept dict at runtime (ignore type error),
-    # BUT explicitly handling it is safer for types:
-    
-    # Update the messages list in the dict (or model)
-    current_state_dict["messages"].append(HumanMessage(content=user_text))
-    
-    # Invoke handles dicts at runtime usually, but to fix the TYPE ERROR:
-    # You would cast it: app_graph.invoke(InterviewState(**current_state_dict))
-    new_state = app_graph.invoke(current_state_dict) 
-    
-    sessions[session_id] = new_state
+    config = {"configurable": {"thread_id": session_id}}
+    new_state = app_graph.invoke(update_data, config=config) 
     
     if new_state.get("feedback_report"):
         return {
             "status": "completed",
             "report": new_state["feedback_report"],
-            "score": new_state["final_score"]
+            "score": new_state.get("final_score", 0)
         }
     
     return {

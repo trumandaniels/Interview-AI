@@ -5,7 +5,8 @@ Interview AI is an open-source, interactive mock interview agent designed to sim
 
 ## How to run
 First, you need to run the LangGraph server component
-`uvicorn src\interview_sim.app.main:app --reload`
+`cd src/interview_sim`
+`uvicorn interview_sim.app.main:app --reload`
 
 Then, in a different console you need to run the front end
 `streamlit run src/interview_sim/frontend/app.py`

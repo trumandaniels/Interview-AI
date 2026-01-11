@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 from audio_recorder_streamlit import audio_recorder # pip install audio-recorder-streamlit
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://127.0.0.1:8000"
 
 st.title("AI Job Interview Simulator")
 
@@ -11,7 +11,6 @@ if "session_id" not in st.session_state:
     st.session_state.chat_history = []
     st.session_state.started = False
 
-# --- CONFIGURATION STEP ---
 if not st.session_state.started:
     with st.form("setup"):
         resume = st.text_area("Paste Resume Text")
