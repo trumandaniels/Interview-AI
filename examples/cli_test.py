@@ -12,10 +12,6 @@ from langchain_core.messages import HumanMessage
 from src.interview_sim.app.graph import app_graph
 from src.interview_sim.app.state import InterviewState
 
-
-
-
-
 def run_cli_interview():
     print("Starting CLI Example / Test")
     
