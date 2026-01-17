@@ -1,9 +1,10 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from .graph import app_graph
 from .utils.audio import transcribe_audio
+from .utils.loaders import load_text_file, load_list_from_file
 from .state import InterviewState 
 from langchain_core.messages import HumanMessage
 
@@ -14,15 +15,22 @@ async def start_interview(
     resume: str = Form(...),
     job_desc: str = Form(...),
     rubric: str = Form(...),
-    session_id: str = Form(...)
-):
+    session_id: str = Form(...),
+    company_info: str = Form(...),
+    common_questions: str = Form(...)):
+
+    job_desc = load_text_file(r"src\interview_sim\data\job_description.txt")
+    company_description = load_text_file(r"src\interview_sim\data\company_info.txt")
+    resume = load_text_file(r"src\interview_sim\data\resume.txt")
+    questions_list = load_list_from_file(r"src\interview_sim\data\common_questions.txt")
+
     initial_state = InterviewState(
         messages=[],
         job_description=job_desc,
-        company_description="TechCorp Inc.",
+        company_description=company_description,
         resume_text=resume,
         rubric=rubric,
-        common_questions=["Tell me about yourself", "Weaknesses?", "Hardest bug?"],
+        common_questions=questions_list,
         question_count=0,
         max_questions=5,
         is_finished=False

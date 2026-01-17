@@ -32,7 +32,7 @@ def generate_question_node(state: InterviewState):
     try:
         inputs = state.model_dump()
     except AttributeError:
-        inputs = state.dict() # Fallback for Pydantic V1
+        inputs = state.dict() #
         
     response = chain.invoke(inputs)
     
